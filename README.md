@@ -7,5 +7,5 @@ ___
 ### Minimum system requirements:
 - OS: Windows 10 or 11
 - Python 3.9.7 or latest
-
-![table]()
+### Example table
+![Table](https://raw.githubusercontent.com/Codyusey/ua_iherb_parser/main/example.png)
