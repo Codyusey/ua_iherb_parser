@@ -4,7 +4,7 @@
 - Target: 'https://ua.iherb.com/'
 - Parse only from ukrainian IP 
 - Parsing speed approximately - 3 items/min. 
-- ## System requirements:
+## System requirements:
 - Windows 10 (64 bit) or Windows 11
 - Python 3.9.7 or latest
 ## Example table:
