@@ -40,24 +40,21 @@ items_dict = {}
 error_codes = []
 message_len = 80
 driver = None
-cursor.hide()
 
 
 def get_name_xlsx(file_extension='xlsx') -> str:
     filelist = glob.glob(os.path.join(input_dir, f"*.{file_extension}"))
     if len(filelist) == 0:
-        print(
-            'Щоб розпочати парсинг сайту https://ua.iherb.com/ '
-            '\nдодайте один файл даних з розширенням "xlsx" до папки "Input"')
+        print('Щоб розпочати парсинг сайту https://ua.iherb.com/ '
+              '\nдодайте один файл даних з розширенням "xlsx" до папки "Input"')
         sys.exit()
     elif 3 > len(filelist) > 1:
         for name in filelist:
             if '~$' not in name:
                 input_filename_xlsx_ = name
                 return input_filename_xlsx_
-        print(
-            'Щоб розпочати парсинг сайту https://ua.iherb.com/ '
-            '\nу папці "Input" має бути лише один файл даних з розширенням "xlsx"')
+        print('Щоб розпочати парсинг сайту https://ua.iherb.com/ '
+              '\nу папці "Input" має бути лише один файл даних з розширенням "xlsx"')
         sys.exit()
     else:
         input_filename_xlsx_ = filelist[0]
@@ -77,7 +74,7 @@ def beep(times=1, b_type=MB_OK):
 
 
 def timer_countdown(num_of_secs):
-    beep(1)
+    beep()
     print()
     cursor.hide()
     while num_of_secs + 1:
@@ -90,7 +87,7 @@ def timer_countdown(num_of_secs):
 
 def data_from_xlsx(file_name_xlsx: str) -> list:
     codes_li = []
-    wb = load_workbook(file_name_xlsx, data_only=False)
+    wb = load_workbook(file_name_xlsx)
     sheet_ranges = wb.active
     column_a = sheet_ranges['A']
     for cell in column_a:
@@ -133,8 +130,8 @@ def parser():
             driver.get(URL)
             time.sleep(random.randrange(5, 6))
         except Exception:
-            print_ln('Webdriver initialization error. Trying again...',
-                     start_ln='\r', end_ln='\r', tab_type='*', color=Fore.RED)
+            print_ln('Webdriver initialization error. Trying again...', start_ln='\r', end_ln='\r', tab_type='*',
+                     color=Fore.RED)
             beep(b_type=MB_ICONHAND)
             time.sleep(3)
             try:
@@ -151,11 +148,12 @@ def parser():
         except Exception:
             pass
         finally:
-            for code in tqdm(full_list_codes, desc='Scraping pages', unit='page', disable=False, ncols=message_len):
+            for code in tqdm(full_list_codes, desc='Scraping pages', unit='page', ncols=message_len):
                 if code in items_dict:
                     continue
                 while True:
                     items_lists = [''] * len(header_items)
+                    real_code = ""
                     try:
                         driver.maximize_window()
                         driver.find_element(By.ID, "px-captcha")
@@ -172,13 +170,13 @@ def parser():
                         driver.maximize_window()
                         soup = BeautifulSoup(driver.page_source, "html.parser")  # "lxml"
                         try:
-                            real_code = soup.find(
-                            "ul", {"id": "product-specs-list"}).find("span", {"itemprop": "sku"}).text.strip()
+                            real_code = soup.find("ul", {"id": "product-specs-list"}).find("span", {
+                                "itemprop": "sku"}).text.strip()
+                            if '-' not in code:
+                                real_code = real_code.replace('-', "")
                         except Exception as ex:
                             print(ex)
 
-                        if '-' not in code:
-                            real_code = real_code.replace('-', "")
                         if real_code == code:
                             items_lists[0] = real_code
                             try:
@@ -215,9 +213,8 @@ def parser():
                             except Exception:
                                 pass
                             try:
-                                bar_code_utk = soup.find(
-                                    "ul", {"id": "product-specs-list"}).find(
-                                    "span", {"itemprop": "gtin12"}).text.strip()
+                                bar_code_utk = soup.find("ul", {"id": "product-specs-list"}
+                                                         ).find("span", {"itemprop": "gtin12"}).text.strip()
                                 items_lists[6] = bar_code_utk
                             except Exception:
                                 pass
@@ -242,7 +239,7 @@ def parser():
                                 print(f'Error write "{filename_data_json}"')
                         else:
                             print_ln("Увага! Парсер працює, якщо вікно браузера завжди поверх усіх вікон.",
-                                     tab_type='*', start_ln='\r',  end_ln='\r', color=Fore.RED)
+                                     tab_type='*', start_ln='\r', end_ln='\r', color=Fore.RED)
                             beep(b_type=MB_ICONHAND)
                             time.sleep(1)
                             continue
@@ -253,8 +250,8 @@ def parser():
                         driver.maximize_window()
                         notfound_type1 = driver.find_element(
                             By.XPATH, "/html/body/div[6]/div[1]/div[4]/div[1]/div/div/p").text
-                        print_ln(f'Error parsing item with code"{code}"',
-                                 tab_type='-', start_ln='\r', end_ln='\r', color=Fore.RED)
+                        print_ln(f'Error parsing item with code"{code}"', tab_type='-', start_ln='\r', end_ln='\r',
+                                 color=Fore.RED)
                         beep(b_type=MB_ICONHAND)
                         items_lists[0] = f'Не вдалося знайти жодного товару, що відповідає запиту: "{code}"'
                         items_dict[code] = items_lists
@@ -267,8 +264,8 @@ def parser():
                     try:
                         driver.maximize_window()
                         notfound_type2 = driver.find_element(By.XPATH, "/html/body/div[6]/div/div[2]/h1").text
-                        print_ln(f'Error parsing item with code"{code}"',
-                                 tab_type='-', start_ln='\r', end_ln='\r', color=Fore.RED)
+                        print_ln(f'Error parsing item with code"{code}"', tab_type='-', start_ln='\r', end_ln='\r',
+                                 color=Fore.RED)
                         beep(b_type=MB_ICONHAND)
                         items_lists[0] = f'Не вдалося знайти жодного товару, що відповідає запиту: "{code}"'
                         items_dict[code] = items_lists
@@ -282,7 +279,7 @@ def parser():
                 if repeat:
                     driver.quit()
                     waiting_time = 11
-                    timer_countdown(waiting_time*60)
+                    timer_countdown(waiting_time * 60)
                     os.system("cls")
                     print_ln("iHerb_ua parser's continues scraping")
                     cursor.hide()
@@ -327,13 +324,14 @@ def print_error_codes():
         if val[0] == f'Не вдалося знайти жодного товару, що відповідає запиту: "{code}"':
             error_codes.append(code)
     if len(error_codes) != 0:
-        print_ln(f"Error parsing codes:", tab_type='', start_ln='', end_ln='\n', color=Fore.RED)
+        print_ln(f"Error parsing codes:", tab_type='', start_ln='', color=Fore.RED)
         for code in error_codes:
-            print_ln(code, tab_type='', start_ln='', end_ln='\n', color=Fore.RED)
+            print_ln(code, tab_type='', start_ln='', color=Fore.RED)
 
 
 if __name__ == '__main__':
     start_time = time.time()
+    cursor.hide()
     try:
         full_list_codes = data_from_xlsx(get_name_xlsx())
     except Exception:
@@ -358,3 +356,4 @@ if __name__ == '__main__':
     beep(3)
     finish_time = (time.time() - start_time)
     print(f"Time spent on the scraping : {int(finish_time / 60)}m:{int(finish_time % 60)}s")
+    cursor.show()
